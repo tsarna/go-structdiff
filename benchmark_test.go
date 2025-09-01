@@ -53,7 +53,7 @@ func BenchmarkDiff_Simple_NoChanges(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DiffStructs(old, new)
+		_, _ = DiffStructs(old, new)
 	}
 }
 
@@ -71,7 +71,7 @@ func BenchmarkDiff_Simple_WithChanges(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DiffStructs(old, new)
+		_, _ = DiffStructs(old, new)
 	}
 }
 
@@ -97,7 +97,7 @@ func BenchmarkDiff_Nested_NoChanges(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DiffStructs(old, new)
+		_, _ = DiffStructs(old, new)
 	}
 }
 
@@ -130,7 +130,7 @@ func BenchmarkDiff_Complex_WithChanges(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DiffStructs(old, new)
+		_, _ = DiffStructs(old, new)
 	}
 }
 
@@ -142,6 +142,6 @@ func BenchmarkDiff_Simple_Allocs(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = DiffStructs(old, new)
+		_, _ = DiffStructs(old, new)
 	}
 }

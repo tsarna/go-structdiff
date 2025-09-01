@@ -21,14 +21,15 @@ import (
 // - Nested structs and maps: compared using the unified Diff function for any combination of structs and maps
 //
 // The resulting patch can be applied using ApplyToStruct or ApplyToMap.
-func DiffStructs(old, new any) map[string]any {
+// Returns (result, nil) on success, or (nil, error) if an error occurs during diffing.
+func DiffStructs(old, new any) (map[string]any, error) {
 	return diffStructValues(reflect.ValueOf(old), reflect.ValueOf(new))
 }
 
-func diffStructValues(oldVal, newVal reflect.Value) map[string]any {
+func diffStructValues(oldVal, newVal reflect.Value) (map[string]any, error) {
 	// Handle nil cases - return empty map for nil vs nil, fallback for others
 	if !oldVal.IsValid() && !newVal.IsValid() {
-		return map[string]any{}
+		return map[string]any{}, nil
 	}
 	if !oldVal.IsValid() || !newVal.IsValid() {
 		// For mixed nil cases, fall back to map-based approach
@@ -47,7 +48,7 @@ func diffStructValues(oldVal, newVal reflect.Value) map[string]any {
 	// Handle pointers
 	if oldVal.Kind() == reflect.Pointer {
 		if oldVal.IsNil() && newVal.Kind() == reflect.Pointer && newVal.IsNil() {
-			return map[string]any{}
+			return map[string]any{}, nil
 		}
 		if oldVal.IsNil() {
 			return diffStructValues(reflect.Value{}, newVal)
@@ -72,9 +73,9 @@ func diffStructValues(oldVal, newVal reflect.Value) map[string]any {
 	// Special case: time.Time
 	if oldVal.Type() == reflect.TypeOf(time.Time{}) && newVal.Type() == reflect.TypeOf(time.Time{}) {
 		if oldVal.Interface().(time.Time).Equal(newVal.Interface().(time.Time)) {
-			return map[string]any{}
+			return map[string]any{}, nil
 		}
-		return map[string]any{"": newVal.Interface()}
+		return map[string]any{"": newVal.Interface()}, nil
 	}
 
 	// Different struct types - fall back to map-based approach
@@ -87,7 +88,7 @@ func diffStructValues(oldVal, newVal reflect.Value) map[string]any {
 	return diffSameTypeStructs(oldVal, newVal)
 }
 
-func diffSameTypeStructs(oldVal, newVal reflect.Value) map[string]any {
+func diffSameTypeStructs(oldVal, newVal reflect.Value) (map[string]any, error) {
 	result := make(map[string]any)
 	oldType := oldVal.Type()
 	newType := newVal.Type()
@@ -142,8 +143,17 @@ func diffSameTypeStructs(oldVal, newVal reflect.Value) map[string]any {
 					result[name] = toMapValue(newFieldVal)
 				} else if (isStruct(oldInterface) || isMap(oldInterface)) && (isStruct(newInterface) || isMap(newInterface)) {
 					// Use unified Diff function for any combination of structs and maps (except time.Time)
-					diff := Diff(oldInterface, newInterface)
-					if len(diff) > 0 {
+					diff, err := Diff(oldInterface, newInterface)
+					if err != nil {
+						return nil, err
+					}
+					if diff != nil {
+						diffMap, ok := diff.(map[string]any)
+						if ok && len(diffMap) > 0 {
+							result[name] = diffMap
+						}
+					}
+					if diffMap, ok := diff.(map[string]any); ok && len(diffMap) > 0 {
 						result[name] = diff
 					}
 				} else {
@@ -176,7 +186,7 @@ func diffSameTypeStructs(oldVal, newVal reflect.Value) map[string]any {
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 // getFieldByName finds a field in a struct by its JSON name

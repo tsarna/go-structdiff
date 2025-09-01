@@ -24,7 +24,8 @@ func TestDiff_StructToStruct(t *testing.T) {
 		old := User{Name: "John", Age: 30, Email: "john@example.com"}
 		new := User{Name: "Jane", Age: 30, Email: "jane@example.com"}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":  "Jane",
@@ -35,7 +36,8 @@ func TestDiff_StructToStruct(t *testing.T) {
 
 	t.Run("identical structs", func(t *testing.T) {
 		user := User{Name: "John", Age: 30, Email: "john@example.com"}
-		diff := Diff(user, user)
+		diff, err := Diff(user, user)
+		assert.NoError(t, err)
 		assert.Empty(t, diff) // Empty map, not nil
 	})
 
@@ -43,7 +45,8 @@ func TestDiff_StructToStruct(t *testing.T) {
 		old := User{Name: "John", Age: 30, Email: "john@example.com"}
 		new := Address{Street: "123 Main St", City: "NYC", Zip: "10001"}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":   nil, // User fields deleted
@@ -70,7 +73,8 @@ func TestDiff_MapToMap(t *testing.T) {
 			"email": "jane@example.com",
 		}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":  "Jane",
@@ -82,7 +86,8 @@ func TestDiff_MapToMap(t *testing.T) {
 
 	t.Run("identical maps", func(t *testing.T) {
 		data := map[string]any{"name": "John", "age": 30}
-		diff := Diff(data, data)
+		diff, err := Diff(data, data)
+		assert.NoError(t, err)
 		assert.Empty(t, diff) // Empty map, not nil
 	})
 }
@@ -96,7 +101,8 @@ func TestDiff_StructToMap(t *testing.T) {
 			"phone": "555-1234", // new field
 		}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":  "Jane",
@@ -111,7 +117,8 @@ func TestDiff_StructToMap(t *testing.T) {
 		old := User{Name: "John", Age: 30}
 		new := map[string]any{}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":  nil,
@@ -131,7 +138,8 @@ func TestDiff_MapToStruct(t *testing.T) {
 		}
 		new := User{Name: "Jane", Age: 31, Email: "jane@example.com"}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":  "Jane",
@@ -146,7 +154,8 @@ func TestDiff_MapToStruct(t *testing.T) {
 		old := map[string]any{}
 		new := User{Name: "John", Age: 30}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"name":  "John",
@@ -189,7 +198,8 @@ func TestDiff_NestedStructures(t *testing.T) {
 			"version": "2.0", // changed
 		}
 
-		diff := Diff(old, new)
+		diff, err := Diff(old, new)
+		assert.NoError(t, err)
 
 		expected := map[string]any{
 			"user": map[string]any{
@@ -208,14 +218,15 @@ func TestDiff_NestedStructures(t *testing.T) {
 
 func TestDiff_NilAndPrimitiveCases(t *testing.T) {
 	t.Run("both nil", func(t *testing.T) {
-		diff := Diff(nil, nil)
+		diff, err := Diff(nil, nil)
+		assert.NoError(t, err)
 		assert.Nil(t, diff)
 	})
 
 	t.Run("old nil, new struct", func(t *testing.T) {
 		new := User{Name: "John", Age: 30}
-		diff := Diff(nil, new)
-
+		diff, err := Diff(nil, new)
+		assert.NoError(t, err)
 		expected := map[string]any{
 			"name":  "John",
 			"age":   30,
@@ -226,8 +237,8 @@ func TestDiff_NilAndPrimitiveCases(t *testing.T) {
 
 	t.Run("old struct, new nil", func(t *testing.T) {
 		old := User{Name: "John", Age: 30}
-		diff := Diff(old, nil)
-
+		diff, err := Diff(old, nil)
+		assert.NoError(t, err)
 		expected := map[string]any{
 			"name":  nil,
 			"age":   nil,
@@ -238,8 +249,8 @@ func TestDiff_NilAndPrimitiveCases(t *testing.T) {
 
 	t.Run("old nil, new map", func(t *testing.T) {
 		new := map[string]any{"name": "John"}
-		diff := Diff(nil, new)
-
+		diff, err := Diff(nil, new)
+		assert.NoError(t, err)
 		expected := map[string]any{
 			"name": "John",
 		}
@@ -247,13 +258,15 @@ func TestDiff_NilAndPrimitiveCases(t *testing.T) {
 	})
 
 	t.Run("non-struct non-map values", func(t *testing.T) {
-		diff := Diff("hello", "world")
-		expected := map[string]any{"": "world"}
+		diff, err := Diff("hello", "world")
+		assert.NoError(t, err)
+		expected := "world"
 		assert.Equal(t, expected, diff)
 	})
 
 	t.Run("identical non-struct non-map values", func(t *testing.T) {
-		diff := Diff("hello", "hello")
+		diff, err := Diff("hello", "hello")
+		assert.NoError(t, err)
 		assert.Nil(t, diff)
 	})
 }
@@ -291,8 +304,8 @@ func TestDiff_Integration(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Generate diff
-			diff := Diff(tc.old, tc.new)
-
+			diff, err := Diff(tc.old, tc.new)
+			assert.NoError(t, err)
 			// Convert both to maps for comparison
 			var oldMap, newMap map[string]any
 
@@ -309,8 +322,10 @@ func TestDiff_Integration(t *testing.T) {
 			}
 
 			// Apply diff to old map
-			if oldMap != nil {
-				result := ApplyToMap(oldMap, diff)
+			if oldMap != nil && diff != nil {
+				diffMap, ok := diff.(map[string]any)
+				assert.True(t, ok, "Diff should return a map[string]any")
+				result := ApplyToMap(oldMap, diffMap)
 				assert.Equal(t, newMap, result, "Diff + Apply should produce the new value")
 			}
 		})

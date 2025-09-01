@@ -13,9 +13,10 @@ import "reflect"
 // - Struct values: compared using the unified Diff function for any combination of structs and maps
 //
 // Applying all changes in the result to the old map would produce the new map.
-func DiffMaps(old, new map[string]any) map[string]any {
+// Returns (result, nil) on success, or (nil, error) if an error occurs during diffing.
+func DiffMaps(old, new map[string]any) (map[string]any, error) {
 	if old == nil && new == nil {
-		return nil
+		return nil, nil
 	}
 	if old == nil {
 		// Everything in new is an addition
@@ -23,7 +24,7 @@ func DiffMaps(old, new map[string]any) map[string]any {
 		for k, v := range new {
 			result[k] = v
 		}
-		return result
+		return result, nil
 	}
 	if new == nil {
 		// Everything in old is a deletion
@@ -31,7 +32,7 @@ func DiffMaps(old, new map[string]any) map[string]any {
 		for k := range old {
 			result[k] = nil
 		}
-		return result
+		return result, nil
 	}
 
 	result := make(map[string]any)
@@ -51,9 +52,14 @@ func DiffMaps(old, new map[string]any) map[string]any {
 			// Key exists in both but values differ
 			if (isMap(oldVal) || isStruct(oldVal)) && (isMap(newVal) || isStruct(newVal)) {
 				// Use unified Diff function for any combination of maps and structs
-				diff := Diff(oldVal, newVal)
-				if len(diff) > 0 {
-					result[key] = diff
+				diff, err := Diff(oldVal, newVal)
+				if err != nil {
+					return nil, err
+				}
+				if diff != nil {
+					if diffMap, ok := diff.(map[string]any); ok && len(diffMap) > 0 {
+						result[key] = diff
+					}
 				}
 			} else {
 				// Different values (non-map, non-struct) - include new value
@@ -70,10 +76,10 @@ func DiffMaps(old, new map[string]any) map[string]any {
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-// valuesEqual compares two values for equality
+// valuesEqual compares two values for equality safely, handling uncomparable types
 func valuesEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true
@@ -100,12 +106,16 @@ func valuesEqual(a, b any) bool {
 
 	// For structs, we need deep comparison using DiffStructs
 	if isStruct(a) && isStruct(b) {
-		diff := DiffStructs(a, b)
+		diff, err := DiffStructs(a, b)
+		if err != nil {
+			// If there's an error comparing structs, consider them different
+			return false
+		}
 		return len(diff) == 0
 	}
 
-	// For basic types, use direct comparison
-	return a == b
+	// For basic types, use safe comparison that handles uncomparable types
+	return safeEqual(a, b)
 }
 
 // mapsEqual compares two maps for deep equality

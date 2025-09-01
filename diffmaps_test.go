@@ -18,7 +18,7 @@ func TestDiffMaps_SameValues(t *testing.T) {
 		"city": "NYC",
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{}
 
 	assert.Equal(t, expected, result)
@@ -36,7 +36,7 @@ func TestDiffMaps_DifferentValues(t *testing.T) {
 		"city": "Boston", // changed
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"age":  31,
 		"city": "Boston",
@@ -57,7 +57,7 @@ func TestDiffMaps_NewKeys(t *testing.T) {
 		"email": "john@example.com", // new key
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"city":  "NYC",
 		"email": "john@example.com",
@@ -79,7 +79,7 @@ func TestDiffMaps_DeletedKeys(t *testing.T) {
 		// city and email deleted
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"city":  nil,
 		"email": nil,
@@ -103,7 +103,7 @@ func TestDiffMaps_MixedChanges(t *testing.T) {
 		// deleted key removed
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"name":    "Jane",
 		"city":    "Boston",
@@ -137,7 +137,7 @@ func TestDiffMaps_NestedMaps(t *testing.T) {
 		},
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"user": map[string]any{
 			"age": 31,
@@ -162,7 +162,7 @@ func TestDiffMaps_NestedMapToValue(t *testing.T) {
 		"config": "simple", // map becomes simple value
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"config": "simple",
 	}
@@ -181,7 +181,7 @@ func TestDiffMaps_ValueToNestedMap(t *testing.T) {
 		},
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"config": map[string]any{
 			"debug": true,
@@ -202,7 +202,7 @@ func TestDiffMaps_Arrays(t *testing.T) {
 		"numbers": []any{1, 2, 3},              // same
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"tags": []any{"go", "test", "diff"},
 	}
@@ -220,7 +220,7 @@ func TestDiffMaps_NilValues(t *testing.T) {
 		"required": nil, // became nil
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"optional": "now has value",
 		"required": nil,
@@ -231,20 +231,20 @@ func TestDiffMaps_NilValues(t *testing.T) {
 
 func TestDiffMaps_EdgeCases(t *testing.T) {
 	t.Run("both nil", func(t *testing.T) {
-		result := DiffMaps(nil, nil)
+		result, _ := DiffMaps(nil, nil)
 		assert.Nil(t, result)
 	})
 
 	t.Run("old nil", func(t *testing.T) {
 		new := map[string]any{"key": "value"}
-		result := DiffMaps(nil, new)
+		result, _ := DiffMaps(nil, new)
 		expected := map[string]any{"key": "value"}
 		assert.Equal(t, expected, result)
 	})
 
 	t.Run("new nil", func(t *testing.T) {
 		old := map[string]any{"key": "value"}
-		result := DiffMaps(old, nil)
+		result, _ := DiffMaps(old, nil)
 		expected := map[string]any{"key": nil}
 		assert.Equal(t, expected, result)
 	})
@@ -252,7 +252,7 @@ func TestDiffMaps_EdgeCases(t *testing.T) {
 	t.Run("both empty", func(t *testing.T) {
 		old := map[string]any{}
 		new := map[string]any{}
-		result := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 		expected := map[string]any{}
 		assert.Equal(t, expected, result)
 	})
@@ -296,7 +296,7 @@ func TestDiffMaps_ComplexNesting(t *testing.T) {
 		},
 	}
 
-	result := DiffMaps(old, new)
+	result, _ := DiffMaps(old, new)
 	expected := map[string]any{
 		"users": map[string]any{
 			"john": map[string]any{
@@ -343,7 +343,7 @@ func TestDiffMaps_ApplyPatch(t *testing.T) {
 		},
 	}
 
-	diff := DiffMaps(old, new)
+	diff, _ := DiffMaps(old, new)
 
 	// Apply the diff to old to get result
 	result := make(map[string]any)
@@ -403,7 +403,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			"count": 5, // unchanged
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		// Should only include the struct diff, not the unchanged count
 		expected := map[string]any{
@@ -414,7 +414,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("identical struct values", func(t *testing.T) {
@@ -430,10 +430,10 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			"count": 5,
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		// Should be empty since nothing changed
-		assert.Empty(t, diff)
+		assert.Empty(t, result)
 	})
 
 	t.Run("nested struct and map combination", func(t *testing.T) {
@@ -472,7 +472,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			},
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": map[string]any{
@@ -488,7 +488,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("struct replaced with different type", func(t *testing.T) {
@@ -500,13 +500,13 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			"data": "simple string", // replaced struct with string
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"data": "simple string",
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("different struct types", func(t *testing.T) {
@@ -518,7 +518,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			"data": Address{Street: "123 Main St", City: "NYC"},
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		// DiffStructs falls back to map comparison for different types,
 		// showing field-level differences
@@ -533,7 +533,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("struct with nil fields", func(t *testing.T) {
@@ -566,7 +566,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			},
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": map[string]any{
@@ -576,7 +576,7 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("struct deletion", func(t *testing.T) {
@@ -590,13 +590,13 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			// user is deleted
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": nil, // deletion marker
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("struct addition", func(t *testing.T) {
@@ -609,13 +609,13 @@ func TestDiffMaps_StructValues(t *testing.T) {
 			"user": User{Name: "John", Age: 30}, // added
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": User{Name: "John", Age: 30},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 }
 
@@ -647,7 +647,7 @@ func TestDiffMaps_StructIntegration(t *testing.T) {
 	}
 
 	// Generate diff
-	diff := DiffMaps(original, modified)
+	diff, _ := DiffMaps(original, modified)
 
 	// Apply diff back to original
 	result := ApplyToMap(original, diff)
@@ -690,7 +690,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 			"other": "value",
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": map[string]any{
@@ -701,7 +701,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("map to struct conversion in DiffMaps", func(t *testing.T) {
@@ -719,7 +719,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 			"other": "value",
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": map[string]any{
@@ -730,7 +730,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("mixed struct-map with nested changes", func(t *testing.T) {
@@ -756,7 +756,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 			"config": Config{Theme: "light", Debug: true},
 		}
 
-		diff := DiffMaps(old, new)
+		result, _ := DiffMaps(old, new)
 
 		expected := map[string]any{
 			"user": map[string]any{
@@ -770,7 +770,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("integration test: mixed types with ApplyToMap", func(t *testing.T) {
@@ -789,7 +789,7 @@ func TestDiffMaps_MixedStructMapValues(t *testing.T) {
 		}
 
 		// Generate diff
-		diff := DiffMaps(original, modified)
+		diff, _ := DiffMaps(original, modified)
 
 		// Apply diff back to original
 		result := ApplyToMap(original, diff)

@@ -17,7 +17,7 @@ func ExampleDiffStructs() {
 	oldUser := User{Name: "John", Age: 30, Email: "john@old.com"}
 	newUser := User{Name: "John", Age: 31, Email: "john@new.com"}
 
-	diff := structdiff.DiffStructs(oldUser, newUser)
+	diff, _ := structdiff.DiffStructs(oldUser, newUser)
 	fmt.Printf("Changes: %+v\n", diff)
 	// Output: Changes: map[age:31 email:john@new.com]
 }
@@ -79,7 +79,7 @@ func ExampleDiffStructs_nested() {
 		Address: Address{Street: "456 Oak Ave", City: "NYC"},
 	}
 
-	diff := structdiff.DiffStructs(old, new)
+	diff, _ := structdiff.DiffStructs(old, new)
 	fmt.Printf("Changes: %+v\n", diff)
 	// Output: Changes: map[address:map[street:456 Oak Ave]]
 }
@@ -110,7 +110,7 @@ func ExampleDiffStructs_roundTrip() {
 	}
 
 	// Compute diff
-	diff := structdiff.DiffStructs(alice, bob)
+	diff, _ := structdiff.DiffStructs(alice, bob)
 
 	// Apply diff to transform alice into bob
 	result := alice

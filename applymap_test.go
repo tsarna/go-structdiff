@@ -285,12 +285,12 @@ func TestDiffMapsAndApplyPatchMap_CrossValidation(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Test: old -> diff -> apply -> should equal new
-			diff := DiffMaps(tc.old, tc.new)
+			diff, _ := DiffMaps(tc.old, tc.new)
 			result := ApplyToMap(tc.old, diff)
 			assert.Equal(t, tc.new, result, "Applying diff to old should produce new")
 
 			// Test: new -> reverse diff -> apply -> should equal old
-			reverseDiff := DiffMaps(tc.new, tc.old)
+			reverseDiff, _ := DiffMaps(tc.new, tc.old)
 			reverseResult := ApplyToMap(tc.new, reverseDiff)
 			assert.Equal(t, tc.old, reverseResult, "Applying reverse diff to new should produce old")
 		})

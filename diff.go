@@ -14,11 +14,12 @@ package structdiff
 // - Keys only in old: included with nil value (indicates deletion)
 // - Nested structures: recursively diffed
 //
-// Returns nil if both values are nil or if there are no differences.
-func Diff(old, new any) map[string]any {
+// Returns (nil, nil) if both values are nil or if there are no differences.
+// Returns (result, nil) on success, or (nil, error) if an error occurs during diffing.
+func Diff(old, new any) (any, error) {
 	// Handle nil cases
 	if old == nil && new == nil {
-		return nil
+		return nil, nil
 	}
 
 	// Determine the types of old and new values
@@ -29,14 +30,16 @@ func Diff(old, new any) map[string]any {
 
 	// Handle struct-struct case
 	if oldIsStruct && newIsStruct {
-		return DiffStructs(old, new)
+		result, err := DiffStructs(old, new)
+		return result, err
 	}
 
 	// Handle map-map case
 	if oldIsMap && newIsMap {
 		oldMap := old.(map[string]any)
 		newMap := new.(map[string]any)
-		return DiffMaps(oldMap, newMap)
+		result, err := DiffMaps(oldMap, newMap)
+		return result, err
 	}
 
 	// Handle mixed cases: convert structs to maps and use DiffMaps
@@ -60,15 +63,27 @@ func Diff(old, new any) map[string]any {
 
 	// If we have maps to compare, use DiffMaps
 	if oldMap != nil || newMap != nil {
-		return DiffMaps(oldMap, newMap)
+		result, err := DiffMaps(oldMap, newMap)
+		return result, err
 	}
 
 	// For non-struct, non-map values, do a simple equality check
-	if old == new {
-		return nil
+	// Use safe comparison to avoid panics
+	equal := safeEqual(old, new)
+	if equal {
+		return nil, nil
 	}
 
 	// Values are different and not structs/maps, return the new value
 	// This case handles primitive types, slices, etc.
-	return map[string]any{"": new}
+	return new, nil
+}
+
+// safeEqual performs equality comparison without panicking on uncomparable types
+func safeEqual(a, b any) bool {
+	defer func() {
+		// If comparison panics (e.g., comparing slices), we recover and return false
+		recover()
+	}()
+	return a == b
 }

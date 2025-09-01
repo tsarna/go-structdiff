@@ -126,7 +126,7 @@ func TestDiff_ComprehensiveTests(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := DiffStructs(tc.old, tc.new)
+			result, _ := DiffStructs(tc.old, tc.new)
 
 			// Verification: result should be a valid JSON patch that produces the correct transformation
 			if len(result) > 0 {
@@ -143,7 +143,7 @@ func TestDiff_ComprehensiveTests(t *testing.T) {
 
 func TestDiff_EdgeCases(t *testing.T) {
 	t.Run("nil values", func(t *testing.T) {
-		result := DiffStructs(nil, nil)
+		result, _ := DiffStructs(nil, nil)
 		// Should return empty map for nil inputs
 		expected := map[string]any{}
 		assert.Equal(t, expected, result)
@@ -152,13 +152,13 @@ func TestDiff_EdgeCases(t *testing.T) {
 	t.Run("nil vs struct", func(t *testing.T) {
 		s := SimpleStruct{Name: "test", Age: 25, Email: "test@example.com"}
 
-		result1 := DiffStructs(nil, s)
+		result1, _ := DiffStructs(nil, s)
 		// Should include all fields from the new struct
 		assert.Contains(t, result1, "name")
 		assert.Contains(t, result1, "age")
 		assert.Contains(t, result1, "email")
 
-		result2 := DiffStructs(s, nil)
+		result2, _ := DiffStructs(s, nil)
 		// Should mark all fields as deleted (nil)
 		assert.Contains(t, result2, "name")
 		assert.Equal(t, nil, result2["name"])
@@ -168,22 +168,22 @@ func TestDiff_EdgeCases(t *testing.T) {
 		old := SimpleStruct{Name: "test", Age: 25, Email: "test@example.com"}
 		new := AddressStruct{Street: "123 Main St", City: "NYC", ZipCode: "10001", Country: "USA"}
 
-		result := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 		// Should handle different struct types correctly
 		assert.NotEmpty(t, result)
 	})
 
 	t.Run("non-struct types", func(t *testing.T) {
-		result := DiffStructs("old", "new")
+		result1, _ := DiffStructs("old", "new")
 		// Should handle non-struct types (may return nil for identical types)
 		// The important thing is it doesn't panic
-		_ = result
+		_ = result1
 
-		result2 := DiffStructs(42, 43)
+		result2, _ := DiffStructs(42, 43)
 		_ = result2
 
 		// Test with actually different values
-		result3 := DiffStructs("old", "new")
+		result3, _ := DiffStructs("old", "new")
 		if result3 != nil {
 			assert.IsType(t, map[string]any{}, result3)
 		}
@@ -200,7 +200,7 @@ func TestDiff_OriginalBehavior(t *testing.T) {
 	old := SimpleStruct{Name: "John", Age: 30, Email: "john@example.com"}
 	new := SimpleStruct{Name: "Jane", Age: 30, Email: "jane@example.com"}
 
-	result := DiffStructs(old, new)
+	result, _ := DiffStructs(old, new)
 	expected := map[string]any{
 		"name":  "Jane",
 		"email": "jane@example.com", // Both changed values should be included
@@ -238,7 +238,7 @@ func TestDiffStructs_MapFields(t *testing.T) {
 			},
 		}
 
-		diff := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 
 		expected := map[string]any{
 			"config": map[string]any{
@@ -247,7 +247,7 @@ func TestDiffStructs_MapFields(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("map field to nil", func(t *testing.T) {
@@ -263,7 +263,7 @@ func TestDiffStructs_MapFields(t *testing.T) {
 			Config: nil,
 		}
 
-		diff := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 
 		expected := map[string]any{
 			"config": map[string]any{
@@ -271,7 +271,7 @@ func TestDiffStructs_MapFields(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("nil map field to map", func(t *testing.T) {
@@ -287,7 +287,7 @@ func TestDiffStructs_MapFields(t *testing.T) {
 			},
 		}
 
-		diff := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 
 		expected := map[string]any{
 			"config": map[string]any{
@@ -295,7 +295,7 @@ func TestDiffStructs_MapFields(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 }
 
@@ -327,7 +327,7 @@ func TestDiffStructs_MixedStructMapFields(t *testing.T) {
 			},
 		}
 
-		diff := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 
 		expected := map[string]any{
 			"address": map[string]any{
@@ -336,7 +336,7 @@ func TestDiffStructs_MixedStructMapFields(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("map field to struct field", func(t *testing.T) {
@@ -354,7 +354,7 @@ func TestDiffStructs_MixedStructMapFields(t *testing.T) {
 			Address: Address{Street: "456 Oak Ave", City: "LA"},
 		}
 
-		diff := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 
 		expected := map[string]any{
 			"address": map[string]any{
@@ -364,7 +364,7 @@ func TestDiffStructs_MixedStructMapFields(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("nested struct with mixed fields", func(t *testing.T) {
@@ -393,7 +393,7 @@ func TestDiffStructs_MixedStructMapFields(t *testing.T) {
 			},
 		}
 
-		diff := DiffStructs(old, new)
+		result, _ := DiffStructs(old, new)
 
 		expected := map[string]any{
 			"name": "Jane",
@@ -406,7 +406,7 @@ func TestDiffStructs_MixedStructMapFields(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expected, diff)
+		assert.Equal(t, expected, result)
 	})
 }
 
@@ -437,7 +437,7 @@ func TestDiffStructs_Integration(t *testing.T) {
 		}
 
 		// Generate diff
-		diff := DiffStructs(original, modified)
+		diff, _ := DiffStructs(original, modified)
 
 		// Apply diff to original
 		result := original // copy
