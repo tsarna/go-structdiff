@@ -1,6 +1,6 @@
 module github.com/tsarna/go-structdiff
 
-go 1.21
+go 1.25.8
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
